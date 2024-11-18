@@ -82,12 +82,26 @@ describe('Contracts Class', () => {
     //     console.log(`tokenAccountsByOwner: ${JSON.stringify(tokenAccountsByOwner)}}`);
     // });
 
-    it('getFTSupply on Mainnet', async () => {
+    // it('getFTSupply on Mainnet', async () => {
+    //     const contract = initializeContract('main');
+
+    //     const usdc = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // USDC
+    //     const usdcSupply = await contract.getFTSupply(usdc);
+
+    //     console.log(`usdcSupply: ${JSON.stringify(usdcSupply.value.amount)}}`);
+    // });
+
+    // it('onAccountChange on Mainnet', async () => {
+    //     const contract = initializeContract('main');
+
+    //     const account = new PublicKey('orcACRJYTFjTeo2pV8TfYRTpmqfoYgbVi9GeANXTCc8');
+    //     await contract.onAccountChange(account);
+    // });
+
+    it('onLogsEmit on Mainnet', async () => {
         const contract = initializeContract('main');
 
-        const usdc = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // USDC
-        const usdcSupply = await contract.getFTSupply(usdc);
-
-        console.log(`usdcSupply: ${JSON.stringify(usdcSupply.value.amount)}}`);
+        const account = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
+        await contract.describeLogsEmit(account);
     });
 });

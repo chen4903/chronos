@@ -73,4 +73,16 @@ export class Contracts {
     public async getFTSupply(tokenAccount: PublicKey): Promise<RpcResponseAndContext<TokenAmount>> {
         return await this.connection.getTokenSupply(tokenAccount);
     }
+
+    public async describeAccountChange(account: PublicKey) {
+        this.connection.onAccountChange(account, (accountInfo) => {
+            console.log(`account state changes: ${JSON.stringify(accountInfo)}\n`);
+        });
+    }
+
+    public async describeLogsEmit(account: PublicKey) {
+        this.connection.onLogs(account, (logs) => {
+            console.log(`logs: ${JSON.stringify(logs)}\n`);
+        });
+    }
 }

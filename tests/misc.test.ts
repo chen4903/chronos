@@ -1,12 +1,16 @@
 import { Misc } from "../src/misc/useful_tools";
+import { assert } from 'console';
 
-function testGenerateKeypair() {
-    const payer = Misc.generateKeypair();
-    console.log(`Generated Keypair: ${payer.publicKey.toBase58()}`);
-}
+// npm test --file=tests/misc.test.ts
+describe('Misc Class', () => {
+    it('generateKeypair', () => {
+        // Generate a new keypair
+        const payer = Misc.generateKeypair();
 
-function runTestCases() {
-    testGenerateKeypair()
-}
+        // Log the generated keypair's public key
+        console.log(`Generated Keypair: ${payer.publicKey.toBase58()}`);
 
-runTestCases()
+        // Assert that the public key is a valid Base58 string
+        assert(payer.publicKey.toBase58().length > 0, "Generated public key should not be empty");
+    });
+});

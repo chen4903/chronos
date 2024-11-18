@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test node -e \"const file=process.env.npm_config_file; require('child_process').execSync('mocha --require ts-node/register ' + (file || 'tests/**/*.ts'), {stdio: 'inherit'})\""
   },
   "keywords": [],
   "author": "",
@@ -13,7 +13,9 @@
     "@solana/web3.js": "^1.95.4"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.9",
     "@types/node": "^22.9.0",
+    "mocha": "^10.8.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   }

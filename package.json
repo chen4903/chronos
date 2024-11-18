@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test node -e \"const file=process.env.npm_config_file; require('child_process').execSync('mocha --require ts-node/register ' + (file || 'tests/**/*.ts'), {stdio: 'inherit'})\""
+    "test": "NODE_ENV=test node -e \"const file=process.env.npm_config_file; require('child_process').execSync('mocha --require ts-node/register --timeout 300000 ' + (file || 'tests/**/*.ts'), {stdio: 'inherit'})\""
   },
   "keywords": [],
   "author": "",

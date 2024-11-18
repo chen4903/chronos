@@ -1,4 +1,4 @@
-import { PublicKey, LAMPORTS_PER_SOL, Keypair } from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL, Keypair, SystemProgram, Transaction } from '@solana/web3.js';
 import { Contracts } from '../src/contracts/contracts';
 import { assert } from 'console';
 import fs from "fs";
@@ -98,10 +98,72 @@ describe('Contracts Class', () => {
     //     await contract.onAccountChange(account);
     // });
 
-    it('onLogsEmit on Mainnet', async () => {
-        const contract = initializeContract('main');
+    // it('onLogsEmit on Mainnet', async () => {
+    //     const contract = initializeContract('main');
 
-        const account = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
-        await contract.describeLogsEmit(account);
+    //     const account = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
+    //     await contract.describeLogsEmit(account);
+    // });
+
+    // it('sendAndConfirmTransaction on test', async () => {
+    //     const contract = initializeContract('test');
+
+    //     const transaction = new Transaction();
+
+    //     const instruction = SystemProgram.transfer({
+    //         fromPubkey: contract.wallet.publicKey,
+    //         toPubkey: contract.wallet.publicKey,
+    //         lamports: 100,
+    //     });
+    //     transaction.add(instruction);
+        
+    //     const signature = await contract.sendAndConfirmTransaction(transaction);
+    //     console.log("signature: ", signature)
+    // });
+
+    // it('sendRawTransaction on test', async () => {
+    //     const contract = initializeContract('test');
+
+    //     const transaction = new Transaction();
+
+    //     const instruction = SystemProgram.transfer({
+    //         fromPubkey: contract.wallet.publicKey,
+    //         toPubkey: contract.wallet.publicKey,
+    //         lamports: 1000,
+    //     });
+    //     transaction.add(instruction);
+
+    //     const { blockhash } = await contract.getLatestBlockhash();
+    //     transaction.recentBlockhash = blockhash;
+    //     transaction.feePayer = contract.wallet.publicKey;
+    //     transaction.sign(contract.wallet);
+    //     const rawTransaction = transaction.serialize();
+        
+    //     const signature = await contract.sendRawTransaction(rawTransaction);
+    //     console.log("signature: ", signature)
+    // });
+
+    it('sendEncodedTransaction on test', async () => {
+        const contract = initializeContract('test');
+
+        const transaction = new Transaction();
+
+        const instruction = SystemProgram.transfer({
+            fromPubkey: contract.wallet.publicKey,
+            toPubkey: contract.wallet.publicKey,
+            lamports: 1000,
+        });
+        transaction.add(instruction);
+
+        const { blockhash } = await contract.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = contract.wallet.publicKey;
+        transaction.sign(contract.wallet);
+        const rawTransaction = transaction.serialize();
+        
+        const base64Transaction = rawTransaction.toString('base64');
+
+        const signature = await contract.sendEncodedTransaction(base64Transaction);
+        console.log("signature: ", signature)
     });
 });

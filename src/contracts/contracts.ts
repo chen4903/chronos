@@ -9,7 +9,7 @@ export class Contracts {
         this.wallet = wallet
     }
 
-    /////////////////////////////////////// write ///////////////////////////////////////////////////////////
+    /////////////////////////////////////// send transaction ///////////////////////////////////////////////////////////
     public async transferSOL(toAddress: PublicKey, value: number): Promise<string> {
         const transaction = new Transaction();
 
@@ -25,7 +25,31 @@ export class Contracts {
         return signature
     }
 
-    /////////////////////////////////////// read ///////////////////////////////////////////////////////////
+    public async sendAndConfirmTransaction(transaction: Transaction): Promise<string> {
+        const signature = await sendAndConfirmTransaction(this.connection, transaction, [this.wallet], {
+            skipPreflight: false
+        });
+
+        return signature
+    }
+
+    public async sendRawTransaction(rawTransaction: Buffer | Uint8Array | Array<number>): Promise<string> {
+        const signature = await this.connection.sendRawTransaction(rawTransaction, { 
+            skipPreflight: false 
+        })
+
+        return signature
+    }
+
+    public async sendEncodedTransaction(base64Transaction: string): Promise<string> {
+        const signature = await this.connection.sendEncodedTransaction(base64Transaction, { 
+            skipPreflight: false 
+        })
+
+        return signature
+    }
+
+    /////////////////////////////////////// getter ///////////////////////////////////////////////////////////
     public async getSOLBalance(publicKey: PublicKey): Promise<number> {
         // human friendly: ${balance / LAMPORTS_PER_SOL} SOL
         return await this.connection.getBalance(publicKey);
@@ -73,6 +97,8 @@ export class Contracts {
     public async getFTSupply(tokenAccount: PublicKey): Promise<RpcResponseAndContext<TokenAmount>> {
         return await this.connection.getTokenSupply(tokenAccount);
     }
+
+    /////////////////////////////////////// describe ///////////////////////////////////////////////////////////
 
     public async describeAccountChange(account: PublicKey) {
         this.connection.onAccountChange(account, (accountInfo) => {

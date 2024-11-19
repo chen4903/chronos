@@ -226,7 +226,7 @@ describe('Contracts Class', () => {
         const contract = initializeContract('main');
 
         const poolAccountPublicKey = new PublicKey('8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj');
-        const sqrtPriceX64Value = await contract.getParsedDataFromRawData(poolAccountPublicKey, 253)
+        const sqrtPriceX64Value = await contract.getParsedDataFromRawData(poolAccountPublicKey, 253, 16)
         console.log("sqrtPriceX64Value: ", sqrtPriceX64Value)
 
         const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());

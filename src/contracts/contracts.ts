@@ -147,14 +147,16 @@ class Contracts {
         return await this.connection.getTokenSupply(tokenAccount);
     }
 
-    public async getParsedDataFromRawData(address: PublicKey, offset: number): Promise<string> {
+    public async getParsedDataFromRawData(address: PublicKey, offset: number, size: number): Promise<string> {
         const accountInfo = await this.connection.getAccountInfo(address);
         const dataBuffer = accountInfo?.data;
         if (!dataBuffer) {
             throw new Error("Account data not found");
         }
     
-        const newBuffer = dataBuffer.subarray(offset, offset + 16);
+        // PS: In Solana, each 8 bits represent one unit of length,
+        // and the discriminator is 8 bytes
+        const newBuffer = dataBuffer.subarray(offset, offset + size);
         const target = new BN(newBuffer, 'le')
 
         return target.toString()

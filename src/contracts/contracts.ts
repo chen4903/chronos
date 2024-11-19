@@ -57,6 +57,7 @@ class Contracts {
         // Priority fee is an additional fee paid on top of the basic transaction fee(5000 Lamports)
         // CU: Compute Units
         // Priority fee = CU limit * CU price    <--- Price is in microLamports
+        // If the priority fee is less than 1 Lamports, then priority fee is set to 1 Lamports
 
         const computeUnitPriceInstruction = ComputeBudgetProgram.setComputeUnitPrice({
             // By default, the number of CU = 200000 * instructions number,
@@ -66,6 +67,9 @@ class Contracts {
         transaction.add(computeUnitPriceInstruction);
 
         const computeUnitLimitInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+            // default: 200_000 CU
+            // normal transfer: 150 CU
+            // max: 1_400_000 CU
             units: computeUnitLimitsUnits,
         });
         transaction.add(computeUnitLimitInstruction);

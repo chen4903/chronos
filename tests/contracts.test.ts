@@ -1,4 +1,4 @@
-import { PublicKey, LAMPORTS_PER_SOL, Keypair, SystemProgram, Transaction } from '@solana/web3.js';
+import { PublicKey, LAMPORTS_PER_SOL, Keypair, SystemProgram, Transaction, AddressLookupTableProgram } from '@solana/web3.js';
 import Contracts from '../src/contracts/contracts';
 import { assert } from 'console';
 import fs from "fs";
@@ -15,7 +15,7 @@ describe('Contracts Class', () => {
         const endpoint = network === 'test' 
             ? "https://api.devnet.solana.com"  // Test network
             : "https://api.mainnet-beta.solana.com"; // Main network
-        return new Contracts(endpoint, 'finalized', wallet);
+        return new Contracts(endpoint, 'confirmed', wallet);
     };
 
     // it('getSOLBalance on Testnet', async () => {
@@ -167,32 +167,62 @@ describe('Contracts Class', () => {
     //     console.log("signature: ", signature)
     // });
 
-    it('sendAndConfirmPriorityTransaction on test', async () => {
+    // it('sendAndConfirmPriorityTransaction on test', async () => {
+    //     const contract = initializeContract('test');
+
+    //     const transaction = new Transaction();
+
+    //     const instruction = SystemProgram.transfer({
+    //         fromPubkey: contract.wallet.publicKey,
+    //         toPubkey: contract.wallet.publicKey,
+    //         lamports: 1000,
+    //     });
+    //     transaction.add(instruction);
+
+    //     const signature = await contract.sendAndConfirmPriorityTransaction(transaction, 4000, 500);
+    //     // https://solscan.io/tx/5gQPNB1LxyJwzkXpBdpr3v9FheLFHaQZhhgQwp4EzzQ58hv92Ye5ov3WmDb8iFxrQnJqasj1UPSKfzquSVM5QbBb?cluster=devnet
+    //     // Priority Fee = 0.000000002 SOL
+
+    //     // The unit in solana:
+    //     // - 1 SOL = 10^9 Lamports = 10^15 MicroLamports
+
+    //     // Let me show you how to calculate the priority fee:
+    //     //   We have: Priority Fee = CU limit * CU price; price is in microLamports;
+    //     //   Then: PriorityFee
+    //     //     = 4000microLamports/unit × 500units
+    //     //     = 2000000microLamports
+    //     //     = 0.002Lamports
+    //     //     = 0.000000002SOL
+    //     console.log("signature: ", signature)
+    // });
+
+
+    it('use ALT on test', async () => {
         const contract = initializeContract('test');
 
-        const transaction = new Transaction();
+        const ALTAddress = await contract.createALT()
+        console.log("ALT address: ", ALTAddress)
 
+        await sleep(2000)
+
+        const lookupTableAddress = new PublicKey(ALTAddress)
+
+        const signature1 = await contract.addAccountToALT(lookupTableAddress, [
+            contract.wallet.publicKey,
+            SystemProgram.programId,
+        ])
+        console.log("signature1: ", signature1) 
+        
         const instruction = SystemProgram.transfer({
             fromPubkey: contract.wallet.publicKey,
             toPubkey: contract.wallet.publicKey,
             lamports: 1000,
         });
-        transaction.add(instruction);
-
-        const signature = await contract.sendAndConfirmPriorityTransaction(transaction, 4000, 500);
-        // https://solscan.io/tx/5gQPNB1LxyJwzkXpBdpr3v9FheLFHaQZhhgQwp4EzzQ58hv92Ye5ov3WmDb8iFxrQnJqasj1UPSKfzquSVM5QbBb?cluster=devnet
-        // Priority Fee = 0.000000002 SOL
-
-        // The unit in solana:
-        // - 1 SOL = 10^9 Lamports = 10^15 MicroLamports
-
-        // Let me show you how to calculate the priority fee:
-        //   We have: Priority Fee = CU limit * CU price; price is in microLamports;
-        //   Then: PriorityFee
-        //     = 4000microLamports/unit × 500units
-        //     = 2000000microLamports
-        //     = 0.002Lamports
-        //     = 0.000000002SOL
-        console.log("signature: ", signature)
+        const signature2 = await contract.sendV0TransactionWithALT([instruction], lookupTableAddress)
+        console.log("signature2: ", signature2) 
     });
 });
+
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

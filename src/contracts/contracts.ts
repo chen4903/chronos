@@ -1,4 +1,4 @@
-import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram, TransactionInstruction, TransactionMessage, VersionedTransaction, AddressLookupTableProgram } from '@solana/web3.js';
 
 class Contracts {
     public connection: Connection;
@@ -158,6 +158,81 @@ class Contracts {
         this.connection.onLogs(account, (logs) => {
             console.log(`logs: ${JSON.stringify(logs)}\n`);
         });
+    }
+
+    /////////////////////////////////////// ALT ///////////////////////////////////////////////////////////
+
+    public async createALT(): Promise<string> {
+        const slot = await this.connection.getSlot("confirmed");
+
+        const [lookupTableInstruction, lookupTableAddress] =
+        AddressLookupTableProgram.createLookupTable({
+            authority: this.wallet.publicKey,
+            payer: this.wallet.publicKey,
+            recentSlot: slot,
+        });
+
+        const { blockhash } = await this.connection.getLatestBlockhash();
+        const messageV0 = new TransactionMessage({
+            payerKey: this.wallet.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [lookupTableInstruction],
+        }).compileToV0Message();
+
+        const transaction = new VersionedTransaction(messageV0);
+        transaction.sign([this.wallet]);
+
+        const signature = await this.connection.sendTransaction(transaction);
+        console.log("Create ALT successfully! Signature: ", signature)
+
+        return lookupTableAddress.toBase58()
+    }
+
+    public async addAccountToALT(lookupTableAddress: PublicKey, addresses: PublicKey[]): Promise<string> {
+
+        const extendInstruction = AddressLookupTableProgram.extendLookupTable({
+            lookupTable: lookupTableAddress,
+            payer: this.wallet.publicKey,
+            authority: this.wallet.publicKey,
+            addresses: addresses,
+        });
+    
+        const { blockhash } = await this.connection.getLatestBlockhash();
+        const messageV0 = new TransactionMessage({
+            payerKey: this.wallet.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [extendInstruction],
+        }).compileToV0Message();
+    
+        const transaction = new VersionedTransaction(messageV0);
+        transaction.sign([this.wallet]);
+    
+        const signature = await this.connection.sendTransaction(transaction);
+
+        return signature
+    }
+
+    public async sendV0TransactionWithALT(instructions: TransactionInstruction[], lookupTableAddress: PublicKey): Promise<string> {
+        const ALT = await this.connection.getAddressLookupTable(lookupTableAddress);
+        if (!ALT.value) {
+            throw new Error("lookupTableAccount does not exist");
+        }
+    
+        const lookupTableAccount = ALT.value;
+
+        const { blockhash } = await this.connection.getLatestBlockhash();
+        const messageV0 = new TransactionMessage({
+            payerKey: this.wallet.publicKey,
+            recentBlockhash: blockhash,
+            instructions: instructions,
+        }).compileToV0Message([lookupTableAccount]);
+    
+        const transaction = new VersionedTransaction(messageV0);
+        transaction.sign([this.wallet]);
+
+        const signature = await this.connection.sendTransaction(transaction);
+
+        return signature
     }
 }
 

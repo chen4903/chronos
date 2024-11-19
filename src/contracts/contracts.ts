@@ -1,4 +1,5 @@
 import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram, TransactionInstruction, TransactionMessage, VersionedTransaction, AddressLookupTableProgram } from '@solana/web3.js';
+import BN from 'bn.js';
 
 class Contracts {
     public connection: Connection;
@@ -144,6 +145,19 @@ class Contracts {
 
     public async getFTSupply(tokenAccount: PublicKey): Promise<RpcResponseAndContext<TokenAmount>> {
         return await this.connection.getTokenSupply(tokenAccount);
+    }
+
+    public async getParsedDataFromRawData(address: PublicKey, offset: number): Promise<string> {
+        const accountInfo = await this.connection.getAccountInfo(address);
+        const dataBuffer = accountInfo?.data;
+        if (!dataBuffer) {
+            throw new Error("Account data not found");
+        }
+    
+        const newBuffer = dataBuffer.subarray(offset, offset + 16);
+        const target = new BN(newBuffer, 'le')
+
+        return target.toString()
     }
 
     /////////////////////////////////////// describe ///////////////////////////////////////////////////////////

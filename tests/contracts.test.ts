@@ -197,30 +197,44 @@ describe('Contracts Class', () => {
     // });
 
 
-    it('use ALT on test', async () => {
-        const contract = initializeContract('test');
+    // it('use ALT on test', async () => {
+    //     const contract = initializeContract('test');
 
-        const ALTAddress = await contract.createALT()
-        console.log("ALT address: ", ALTAddress)
+    //     const ALTAddress = await contract.createALT()
+    //     console.log("ALT address: ", ALTAddress)
 
-        await sleep(2000)
+    //     await sleep(2000)
 
-        const lookupTableAddress = new PublicKey(ALTAddress)
+    //     const lookupTableAddress = new PublicKey(ALTAddress)
 
-        const signature1 = await contract.addAccountToALT(lookupTableAddress, [
-            contract.wallet.publicKey,
-            SystemProgram.programId,
-        ])
-        console.log("signature1: ", signature1) 
+    //     const signature1 = await contract.addAccountToALT(lookupTableAddress, [
+    //         contract.wallet.publicKey,
+    //         SystemProgram.programId,
+    //     ])
+    //     console.log("signature1: ", signature1) 
         
-        const instruction = SystemProgram.transfer({
-            fromPubkey: contract.wallet.publicKey,
-            toPubkey: contract.wallet.publicKey,
-            lamports: 1000,
-        });
-        const signature2 = await contract.sendV0TransactionWithALT([instruction], lookupTableAddress)
-        console.log("signature2: ", signature2) 
+    //     const instruction = SystemProgram.transfer({
+    //         fromPubkey: contract.wallet.publicKey,
+    //         toPubkey: contract.wallet.publicKey,
+    //         lamports: 1000,
+    //     });
+    //     const signature2 = await contract.sendV0TransactionWithALT([instruction], lookupTableAddress)
+    //     console.log("signature2: ", signature2) 
+    // });
+
+    it('getParsedDataFromRawData on Mainnet', async () => {
+        const contract = initializeContract('main');
+
+        const poolAccountPublicKey = new PublicKey('8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj');
+        const sqrtPriceX64Value = await contract.getParsedDataFromRawData(poolAccountPublicKey, 253)
+        console.log("sqrtPriceX64Value: ", sqrtPriceX64Value)
+
+        const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());
+        const sqrtPriceX64Float = Number(sqrtPriceX64BigInt) / (2 ** 64);
+        const price = sqrtPriceX64Float ** 2 * 1e9 / 1e6;
+        console.log(`WSOL price:`,  price.toString())
     });
+
 });
 
 function sleep(ms: number): Promise<void> {

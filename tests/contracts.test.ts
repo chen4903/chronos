@@ -1,5 +1,5 @@
 import { PublicKey, LAMPORTS_PER_SOL, Keypair, SystemProgram, Transaction } from '@solana/web3.js';
-import { Contracts } from '../src/contracts/contracts';
+import Contracts from '../src/contracts/contracts';
 import { assert } from 'console';
 import fs from "fs";
 
@@ -143,7 +143,31 @@ describe('Contracts Class', () => {
     //     console.log("signature: ", signature)
     // });
 
-    it('sendEncodedTransaction on test', async () => {
+    // it('sendEncodedTransaction on test', async () => {
+    //     const contract = initializeContract('test');
+
+    //     const transaction = new Transaction();
+
+    //     const instruction = SystemProgram.transfer({
+    //         fromPubkey: contract.wallet.publicKey,
+    //         toPubkey: contract.wallet.publicKey,
+    //         lamports: 1000,
+    //     });
+    //     transaction.add(instruction);
+
+    //     const { blockhash } = await contract.getLatestBlockhash();
+    //     transaction.recentBlockhash = blockhash;
+    //     transaction.feePayer = contract.wallet.publicKey;
+    //     transaction.sign(contract.wallet);
+    //     const rawTransaction = transaction.serialize();
+        
+    //     const base64Transaction = rawTransaction.toString('base64');
+
+    //     const signature = await contract.sendEncodedTransaction(base64Transaction);
+    //     console.log("signature: ", signature)
+    // });
+
+    it('sendAndConfirmPriorityTransaction on test', async () => {
         const contract = initializeContract('test');
 
         const transaction = new Transaction();
@@ -155,15 +179,20 @@ describe('Contracts Class', () => {
         });
         transaction.add(instruction);
 
-        const { blockhash } = await contract.getLatestBlockhash();
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = contract.wallet.publicKey;
-        transaction.sign(contract.wallet);
-        const rawTransaction = transaction.serialize();
-        
-        const base64Transaction = rawTransaction.toString('base64');
+        const signature = await contract.sendAndConfirmPriorityTransaction(transaction, 4000, 500);
+        // https://solscan.io/tx/5gQPNB1LxyJwzkXpBdpr3v9FheLFHaQZhhgQwp4EzzQ58hv92Ye5ov3WmDb8iFxrQnJqasj1UPSKfzquSVM5QbBb?cluster=devnet
+        // Priority Fee = 0.000000002 SOL
 
-        const signature = await contract.sendEncodedTransaction(base64Transaction);
+        // The unit in solana:
+        // - 1 SOL = 10^9 Lamports = 10^15 MicroLamports
+
+        // Let me show you how to calculate the priority fee:
+        //   We have: Priority Fee = CU limit * CU price; price is in microLamports;
+        //   Then: PriorityFee
+        //     = 4000microLamports/unit × 500units
+        //     = 2000000microLamports
+        //     = 0.002Lamports
+        //     = 0.000000002SOL
         console.log("signature: ", signature)
     });
 });

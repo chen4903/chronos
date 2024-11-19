@@ -1,6 +1,6 @@
-import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse } from '@solana/web3.js';
+import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram } from '@solana/web3.js';
 
-export class Contracts {
+class Contracts {
     public connection: Connection;
     public wallet: Keypair
 
@@ -34,17 +34,45 @@ export class Contracts {
     }
 
     public async sendRawTransaction(rawTransaction: Buffer | Uint8Array | Array<number>): Promise<string> {
-        const signature = await this.connection.sendRawTransaction(rawTransaction, { 
-            skipPreflight: false 
+        const signature = await this.connection.sendRawTransaction(rawTransaction, {
+            skipPreflight: false
         })
 
         return signature
     }
 
     public async sendEncodedTransaction(base64Transaction: string): Promise<string> {
-        const signature = await this.connection.sendEncodedTransaction(base64Transaction, { 
-            skipPreflight: false 
+        const signature = await this.connection.sendEncodedTransaction(base64Transaction, {
+            skipPreflight: false
         })
+
+        return signature
+    }
+
+    public async sendAndConfirmPriorityTransaction(
+        transaction: Transaction,
+        computeUnitPriceInMicroLamports: number,
+        computeUnitLimitsUnits: number
+    ): Promise<string> {
+        // Priority fee is an additional fee paid on top of the basic transaction fee(5000 Lamports)
+        // CU: Compute Units
+        // Priority fee = CU limit * CU price    <--- Price is in microLamports
+
+        const computeUnitPriceInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+            // By default, the number of CU = 200000 * instructions number,
+            // and Compute Budget program instruction would NOT be considerate into the number of instructions number
+            microLamports: computeUnitPriceInMicroLamports
+        });
+        transaction.add(computeUnitPriceInstruction);
+
+        const computeUnitLimitInstruction = ComputeBudgetProgram.setComputeUnitLimit({
+            units: computeUnitLimitsUnits,
+        });
+        transaction.add(computeUnitLimitInstruction);
+
+        const signature = await sendAndConfirmTransaction(this.connection, transaction, [this.wallet], {
+            skipPreflight: false
+        });
 
         return signature
     }
@@ -112,3 +140,5 @@ export class Contracts {
         });
     }
 }
+
+export default Contracts

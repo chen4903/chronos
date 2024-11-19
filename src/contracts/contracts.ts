@@ -1,4 +1,4 @@
-import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram } from '@solana/web3.js';
+import { Commitment, Connection, PublicKey, SystemProgram, Transaction, Keypair, sendAndConfirmTransaction, RpcResponseAndContext, TokenAmount, BlockhashWithExpiryBlockHeight, AccountInfo, ParsedTransactionWithMeta, ConfirmedSignatureInfo, GetProgramAccountsResponse, ComputeBudgetProgram, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 
 class Contracts {
     public connection: Connection;
@@ -77,6 +77,22 @@ class Contracts {
         const signature = await sendAndConfirmTransaction(this.connection, transaction, [this.wallet], {
             skipPreflight: false
         });
+
+        return signature
+    }
+
+    public async sendV0Transaction(instructions: TransactionInstruction[]): Promise<string> {
+        const { blockhash } = await this.connection.getLatestBlockhash();
+        const messageV0 = new TransactionMessage({
+            payerKey: this.wallet.publicKey,
+            recentBlockhash: blockhash,
+            instructions: instructions,
+        }).compileToV0Message();
+    
+        const transaction = new VersionedTransaction(messageV0);
+        transaction.sign([this.wallet]);
+
+        const signature = await this.connection.sendTransaction(transaction);
 
         return signature
     }

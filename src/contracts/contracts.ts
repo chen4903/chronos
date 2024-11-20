@@ -61,8 +61,7 @@ class Contracts {
         // If the priority fee is less than 1 Lamports, then priority fee is set to 1 Lamports
 
         const computeUnitPriceInstruction = ComputeBudgetProgram.setComputeUnitPrice({
-            // By default, the number of CU = 200000 * instructions number,
-            // and Compute Budget program instruction would NOT be considerate into the number of instructions number
+            // By default, the number of CU = 200000 * instructions number
             microLamports: computeUnitPriceInMicroLamports
         });
         transaction.add(computeUnitPriceInstruction);
@@ -164,16 +163,12 @@ class Contracts {
 
     /////////////////////////////////////// describe ///////////////////////////////////////////////////////////
 
-    public async describeAccountChange(account: PublicKey) {
-        this.connection.onAccountChange(account, (accountInfo) => {
-            console.log(`account state changes: ${JSON.stringify(accountInfo)}\n`);
-        });
+    public async describeAccountChange(account: PublicKey, callbackFunc: (param: any) => any) {
+        this.connection.onAccountChange(account, callbackFunc);
     }
 
-    public async describeLogsEmit(account: PublicKey) {
-        this.connection.onLogs(account, (logs) => {
-            console.log(`logs: ${JSON.stringify(logs)}\n`);
-        });
+    public async describeLogsEmit(account: PublicKey, callbackFunc: (param: any) => any) {
+        this.connection.onLogs(account, callbackFunc);
     }
 
     /////////////////////////////////////// ALT ///////////////////////////////////////////////////////////

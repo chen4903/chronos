@@ -2,6 +2,7 @@ import { PublicKey, LAMPORTS_PER_SOL, Keypair, SystemProgram, Transaction, Addre
 import Contracts from '../src/contracts/contracts';
 import { assert } from 'console';
 import fs from "fs";
+import BN from 'bn.js';
 
 describe('Contracts Class', () => {
     const loadWallet = () => {
@@ -12,7 +13,7 @@ describe('Contracts Class', () => {
 
     const initializeContract = (network: 'test' | 'main') => {
         const wallet = loadWallet();
-        const endpoint = network === 'test' 
+        const endpoint = network === 'test'
             ? "https://api.devnet.solana.com"  // Test network
             : "https://api.mainnet-beta.solana.com"; // Main network
         return new Contracts(endpoint, 'confirmed', wallet);
@@ -98,13 +99,6 @@ describe('Contracts Class', () => {
     //     await contract.onAccountChange(account);
     // });
 
-    // it('onLogsEmit on Mainnet', async () => {
-    //     const contract = initializeContract('main');
-
-    //     const account = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
-    //     await contract.describeLogsEmit(account);
-    // });
-
     // it('sendAndConfirmTransaction on test', async () => {
     //     const contract = initializeContract('test');
 
@@ -116,7 +110,7 @@ describe('Contracts Class', () => {
     //         lamports: 100,
     //     });
     //     transaction.add(instruction);
-        
+
     //     const signature = await contract.sendAndConfirmTransaction(transaction);
     //     console.log("signature: ", signature)
     // });
@@ -138,7 +132,7 @@ describe('Contracts Class', () => {
     //     transaction.feePayer = contract.wallet.publicKey;
     //     transaction.sign(contract.wallet);
     //     const rawTransaction = transaction.serialize();
-        
+
     //     const signature = await contract.sendRawTransaction(rawTransaction);
     //     console.log("signature: ", signature)
     // });
@@ -160,7 +154,7 @@ describe('Contracts Class', () => {
     //     transaction.feePayer = contract.wallet.publicKey;
     //     transaction.sign(contract.wallet);
     //     const rawTransaction = transaction.serialize();
-        
+
     //     const base64Transaction = rawTransaction.toString('base64');
 
     //     const signature = await contract.sendEncodedTransaction(base64Transaction);
@@ -212,7 +206,7 @@ describe('Contracts Class', () => {
     //         SystemProgram.programId,
     //     ])
     //     console.log("signature1: ", signature1) 
-        
+
     //     const instruction = SystemProgram.transfer({
     //         fromPubkey: contract.wallet.publicKey,
     //         toPubkey: contract.wallet.publicKey,
@@ -222,17 +216,71 @@ describe('Contracts Class', () => {
     //     console.log("signature2: ", signature2) 
     // });
 
-    it('getParsedDataFromRawData on Mainnet', async () => {
+    // it('getParsedDataFromRawData on Mainnet', async () => {
+    //     const contract = initializeContract('main');
+
+    //     const poolAccountPublicKey = new PublicKey('8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj');
+    //     // 253: 8 + 1 + 32 + 32 + 32 + 32 + 32 + 32 + 32 + 1 + 1 + 2 + 16
+    //     // [discriminator]: 8
+    //     // bump: 1
+    //     // ammConfig: 32
+    //     // owner: 32
+    //     // tokenMint0: 32
+    //     // tokenMint1: 32
+    //     // tokenVault0: 32
+    //     // tokenVault1: 32
+    //     // observationKey: 32
+    //     // mintDecimals0: 1
+    //     // mintDecimals1: 1
+    //     // tickSpacing: 2
+    //     // liquidity: 16
+    //     // --> sqrtPriceX64Value: 16
+    //     const sqrtPriceX64Value = await contract.getParsedDataFromRawData(poolAccountPublicKey, 253, 16)
+    //     console.log("sqrtPriceX64Value: ", sqrtPriceX64Value)
+
+    //     const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());
+    //     const sqrtPriceX64Float = Number(sqrtPriceX64BigInt) / (2 ** 64);
+    //     const price = sqrtPriceX64Float ** 2 * 1e9 / 1e6;
+    //     console.log(`WSOL price:`,  price.toString())
+    // });
+
+    // it('describeLogsEmit on Mainnet', async () => {
+    //     const contract = initializeContract('main');
+
+    //     const raydiumV4PublicKey = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
+
+    //     await contract.describeLogsEmit(raydiumV4PublicKey, ({ logs, err, signature }) => {
+    //         if (err) return;
+        
+    //         if (logs && logs.some((log: any) => log.includes("initialize2"))) {
+    //             console.log(`new pool: https://solscan.io/tx/${signature}`);
+    //         }
+    //     });
+    // });
+
+    it('describeAccountChange on Mainnet', async () => {
         const contract = initializeContract('main');
 
-        const poolAccountPublicKey = new PublicKey('8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj');
-        const sqrtPriceX64Value = await contract.getParsedDataFromRawData(poolAccountPublicKey, 253, 16)
-        console.log("sqrtPriceX64Value: ", sqrtPriceX64Value)
+        const address = new PublicKey('8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj');
 
-        const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());
-        const sqrtPriceX64Float = Number(sqrtPriceX64BigInt) / (2 ** 64);
-        const price = sqrtPriceX64Float ** 2 * 1e9 / 1e6;
-        console.log(`WSOL price:`,  price.toString())
+        await contract.describeAccountChange(address, async (accountInfo) => {
+            const dataBuffer = accountInfo?.data;
+            if (!dataBuffer) {
+                throw new Error("Account data not found");
+            }
+    
+            const offset = 253
+            const sqrtPriceX64Buffer = dataBuffer.slice(offset, offset + 16);
+            const sqrtPriceX64Value = new BN(sqrtPriceX64Buffer, 'le');
+            console.log(`sqrtPriceX64Value at offset ${offset}:`, sqrtPriceX64Value.toString());
+    
+            // calculate the price
+            const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());
+            const sqrtPriceX64Float = Number(sqrtPriceX64BigInt) / (2 ** 64);
+            const price = sqrtPriceX64Float ** 2 * 1e9 / 1e6;
+            console.log(`WSOL price:`, price.toString())
+            console.log('---\n')
+        });
     });
 
 });

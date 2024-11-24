@@ -21,7 +21,7 @@ class TGBot {
 
     public async sendMessage(message: string) {
         const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
-    
+
         try {
             await axios.post(url, {
                 chat_id: this.chatId,
@@ -29,7 +29,7 @@ class TGBot {
                 parse_mode: 'HTML',
                 disable_web_page_preview: true,
             });
-    
+
         } catch (error: any) {
             console.error('Error sending message:', error.message);
         }
@@ -39,7 +39,7 @@ class TGBot {
         this.connection.onAccountChange(
             publicKey,
             async () => {
-                const sig = await this.connection.getSignaturesForAddress(publicKey, {limit: 1}, 'confirmed');
+                const sig = await this.connection.getSignaturesForAddress(publicKey, { limit: 1 }, 'confirmed');
                 await this.sendMessage(`New trasaction!\n\nhttps://solscan.io/tx/${sig[0].signature}`)
             }
         );

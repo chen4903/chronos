@@ -251,7 +251,7 @@ describe('Contracts Class', () => {
 
     //     await contract.describeLogsEmit(raydiumV4PublicKey, ({ logs, err, signature }) => {
     //         if (err) return;
-        
+
     //         if (logs && logs.some((log: any) => log.includes("initialize2"))) {
     //             console.log(`new pool: https://solscan.io/tx/${signature}`);
     //         }
@@ -268,12 +268,12 @@ describe('Contracts Class', () => {
             if (!dataBuffer) {
                 throw new Error("Account data not found");
             }
-    
+
             const offset = 253
             const sqrtPriceX64Buffer = dataBuffer.slice(offset, offset + 16);
             const sqrtPriceX64Value = new BN(sqrtPriceX64Buffer, 'le');
             console.log(`sqrtPriceX64Value at offset ${offset}:`, sqrtPriceX64Value.toString());
-    
+
             // calculate the price
             const sqrtPriceX64BigInt = BigInt(sqrtPriceX64Value.toString());
             const sqrtPriceX64Float = Number(sqrtPriceX64BigInt) / (2 ** 64);

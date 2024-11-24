@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 export class Misc {
-  
+
   // generate and save to a file
   static generateKeypair(): Keypair {
     const wallet = Keypair.generate();

@@ -88,7 +88,7 @@ class Contracts {
             recentBlockhash: blockhash,
             instructions: instructions,
         }).compileToV0Message();
-    
+
         const transaction = new VersionedTransaction(messageV0);
         transaction.sign([this.wallet]);
 
@@ -152,7 +152,7 @@ class Contracts {
         if (!dataBuffer) {
             throw new Error("Account data not found");
         }
-    
+
         // PS: In Solana, each 8 bits represent one unit of length,
         // and the discriminator is 8 bytes
         const newBuffer = dataBuffer.subarray(offset, offset + size);
@@ -177,11 +177,11 @@ class Contracts {
         const slot = await this.connection.getSlot("confirmed");
 
         const [lookupTableInstruction, lookupTableAddress] =
-        AddressLookupTableProgram.createLookupTable({
-            authority: this.wallet.publicKey,
-            payer: this.wallet.publicKey,
-            recentSlot: slot,
-        });
+            AddressLookupTableProgram.createLookupTable({
+                authority: this.wallet.publicKey,
+                payer: this.wallet.publicKey,
+                recentSlot: slot,
+            });
 
         const { blockhash } = await this.connection.getLatestBlockhash();
         const messageV0 = new TransactionMessage({
@@ -207,17 +207,17 @@ class Contracts {
             authority: this.wallet.publicKey,
             addresses: addresses,
         });
-    
+
         const { blockhash } = await this.connection.getLatestBlockhash();
         const messageV0 = new TransactionMessage({
             payerKey: this.wallet.publicKey,
             recentBlockhash: blockhash,
             instructions: [extendInstruction],
         }).compileToV0Message();
-    
+
         const transaction = new VersionedTransaction(messageV0);
         transaction.sign([this.wallet]);
-    
+
         const signature = await this.connection.sendTransaction(transaction);
 
         return signature
@@ -228,7 +228,7 @@ class Contracts {
         if (!ALT.value) {
             throw new Error("lookupTableAccount does not exist");
         }
-    
+
         const lookupTableAccount = ALT.value;
 
         const { blockhash } = await this.connection.getLatestBlockhash();
@@ -237,7 +237,7 @@ class Contracts {
             recentBlockhash: blockhash,
             instructions: instructions,
         }).compileToV0Message([lookupTableAccount]);
-    
+
         const transaction = new VersionedTransaction(messageV0);
         transaction.sign([this.wallet]);
 
